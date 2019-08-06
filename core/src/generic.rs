@@ -122,6 +122,60 @@ pub trait Generic {
     }
 }
 
+// Non-compound types cannot be decomposed into an Hlist, and are therefore
+// represented as themselves.
+macro_rules! impl_generic_core_types {
+    ($( [$($typaram : tt),*] $ty: ty,)* ) => {
+        $(
+            impl<$($typaram,)*> Generic for $ty {
+                type Repr = Self;
+                fn into(self) -> Self::Repr { self }
+                fn from(repr: Self::Repr) -> Self { repr }
+            }
+        )*
+    };
+}
+
+impl_generic_core_types!{
+    [] f32,
+    [] f64,
+    [] i8,
+    [] i16,
+    [] i32,
+    [] i64,
+    [] i128,
+    [] isize,
+
+    [] u8,
+    [] u16,
+    [] u32,
+    [] u64,
+    [] u128,
+    [] usize,
+
+    [] core::num::NonZeroI8,
+    [] core::num::NonZeroI16,
+    [] core::num::NonZeroI32,
+    [] core::num::NonZeroI64,
+    [] core::num::NonZeroI128,
+    [] core::num::NonZeroIsize,
+
+    [] core::num::NonZeroU8,
+    [] core::num::NonZeroU16,
+    [] core::num::NonZeroU32,
+    [] core::num::NonZeroU64,
+    [] core::num::NonZeroU128,
+    [] core::num::NonZeroUsize,
+
+    ['t, T] &'t T,
+    ['t, T] &'t [T],
+    ['t, T] &'t mut T,
+    ['t, T] &'t mut [T],
+    [T] *const T,
+    [T] *mut T,
+    [T] core::ptr::NonNull<T>,
+}
+
 /// Given a generic representation `Repr` of a `Dst`, returns `Dst`.
 pub fn from_generic<Dst, Repr>(repr: Repr) -> Dst
 where
